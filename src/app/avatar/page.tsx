@@ -132,7 +132,15 @@ export default function AvatarPage() {
                     {i + 1}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sky-900 text-sm font-semibold leading-snug">{item.title}</p>
+                    {item.sourceUrl ? (
+                      <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer"
+                        className="group inline-flex items-start gap-1 hover:text-sky-600 transition-colors">
+                        <span className="text-sky-900 text-sm font-semibold leading-snug group-hover:text-sky-600">{item.title}</span>
+                        <span className="text-sky-300 text-xs mt-0.5 shrink-0">↗</span>
+                      </a>
+                    ) : (
+                      <p className="text-sky-900 text-sm font-semibold leading-snug">{item.title}</p>
+                    )}
                     <p className="text-sky-500/80 text-xs mt-1 leading-relaxed line-clamp-2">{item.summary}</p>
                     <div className="flex items-center gap-3 mt-2">
                       <span className="pill bg-sky-50 text-sky-500">{item.category}</span>
@@ -261,7 +269,15 @@ function FeedCard({ item, avatarName, gradClass }: { item: FeedItem; avatarName:
               <span className="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full font-medium">事情描述</span>
               {item.sourceName && <span className="text-white/70 text-xs">{item.sourceName}</span>}
             </div>
-            <h3 className="text-white font-bold text-base leading-snug">{item.title}</h3>
+            {item.sourceUrl ? (
+              <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer"
+                className="group inline-flex items-start gap-1 hover:underline underline-offset-2 decoration-white/50">
+                <h3 className="text-white font-bold text-base leading-snug group-hover:text-white/90">{item.title}</h3>
+                <span className="text-white/50 text-xs mt-1 shrink-0">↗</span>
+              </a>
+            ) : (
+              <h3 className="text-white font-bold text-base leading-snug">{item.title}</h3>
+            )}
           </div>
           {item.sourceUrl && (
             <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer"
