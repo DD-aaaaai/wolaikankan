@@ -108,11 +108,19 @@ export default function AvatarPage() {
             <div className="grid gap-3">
               {feed.topThree.map((item, i) => (
                 <div key={i} className="bg-stone-900 p-4 flex gap-4">
-                  <span className="text-stone-600 text-2xl font-light">{i + 1}</span>
-                  <div>
+                  <span className="text-stone-600 text-2xl font-light shrink-0">{i + 1}</span>
+                  <div className="flex-1 min-w-0">
                     <p className="text-stone-300 text-sm font-medium">{item.title}</p>
                     <p className="text-stone-500 text-xs mt-1 leading-relaxed">{item.summary}</p>
-                    <span className="text-stone-600 text-xs">{item.category}</span>
+                    <div className="flex items-center gap-3 mt-2">
+                      <span className="text-stone-600 text-xs">{item.category}</span>
+                      {item.sourceUrl && (
+                        <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer"
+                          className="text-stone-600 text-xs hover:text-stone-400 transition-colors">
+                          查看原文 →
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -231,9 +239,23 @@ function FeedCard({ item, avatarName }: { item: FeedItem; avatarName: string }) 
     <div className="space-y-6">
       <div className="bg-stone-900 p-6 space-y-4">
         <div>
-          <p className="text-stone-500 text-xs tracking-widest mb-2">事情描述</p>
+          <div className="flex items-start justify-between gap-4 mb-2">
+            <p className="text-stone-500 text-xs tracking-widest">事情描述</p>
+            {item.sourceUrl && (
+              <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer"
+                className="text-stone-500 text-xs hover:text-stone-300 transition-colors border-b border-stone-700 hover:border-stone-500 shrink-0">
+                来源：{item.sourceName || "原文"} →
+              </a>
+            )}
+          </div>
           <h3 className="text-stone-100 text-lg font-light leading-relaxed">{item.title}</h3>
           <p className="text-stone-400 text-sm mt-2 leading-relaxed">{item.summary}</p>
+          {item.sourceUrl && (
+            <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer"
+              className="inline-block mt-3 px-3 py-1.5 border border-stone-700 text-stone-500 text-xs hover:border-stone-500 hover:text-stone-300 transition-colors">
+              查看原文 →
+            </a>
+          )}
         </div>
 
         <div>
@@ -254,9 +276,7 @@ function FeedCard({ item, avatarName }: { item: FeedItem; avatarName: string }) 
         </div>
 
         <div>
-          <p className="text-stone-500 text-xs tracking-widest mb-2">
-            {avatarName} 的体验
-          </p>
+          <p className="text-stone-500 text-xs tracking-widest mb-2">{avatarName} 的体验</p>
           <p className="text-stone-400 text-sm leading-relaxed italic">
             &ldquo;{item.avatarExperience}&rdquo;
           </p>
@@ -267,10 +287,13 @@ function FeedCard({ item, avatarName }: { item: FeedItem; avatarName: string }) 
         <div>
           <p className="text-stone-500 text-xs tracking-widest mb-3">更多相关内容</p>
           <div className="space-y-2">
-            {item.moreItems.map((title, i) => (
-              <div key={i} className="bg-stone-900 px-4 py-3 text-stone-400 text-sm">
-                {title}
-              </div>
+            {item.moreItems.map((more, i) => (
+              <a key={i} href={typeof more === "string" ? "#" : more.url}
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center justify-between bg-stone-900 px-4 py-3 text-stone-400 text-sm hover:bg-stone-800 hover:text-stone-300 transition-colors group">
+                <span>{typeof more === "string" ? more : more.title}</span>
+                <span className="text-stone-600 group-hover:text-stone-400 text-xs ml-3 shrink-0">→</span>
+              </a>
             ))}
           </div>
         </div>
