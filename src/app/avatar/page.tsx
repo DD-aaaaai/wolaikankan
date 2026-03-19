@@ -4,6 +4,19 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import type { DailyFeedData, FeedItem } from "@/lib/feedGenerator";
 
+const CAT_ICONS: Record<string, string> = {
+  工作: "💼", 成长: "🌱", 娱乐: "🎮", 健康: "💪", 关系: "💫", 其他: "✨",
+};
+
+const CAT_COLORS: Record<string, string> = {
+  工作: "from-blue-500 to-indigo-600",
+  成长: "from-emerald-500 to-teal-600",
+  娱乐: "from-purple-500 to-pink-600",
+  健康: "from-rose-500 to-orange-500",
+  关系: "from-amber-500 to-yellow-500",
+  其他: "from-sky-500 to-cyan-600",
+};
+
 export default function AvatarPage() {
   const [feed, setFeed] = useState<DailyFeedData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -17,10 +30,7 @@ export default function AvatarPage() {
   useEffect(() => {
     fetch("/api/feed")
       .then((r) => r.json())
-      .then((d) => {
-        setFeed(d.feed);
-        setLoading(false);
-      });
+      .then((d) => { setFeed(d.feed); setLoading(false); });
   }, []);
 
   useEffect(() => {
@@ -33,7 +43,6 @@ export default function AvatarPage() {
     setChatInput("");
     setMessages((m) => [...m, { role: "user", text: msg }]);
     setChatLoading(true);
-
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -46,77 +55,90 @@ export default function AvatarPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-stone-950 flex items-center justify-center">
-        <p className="text-stone-500 text-sm tracking-widest animate-pulse">
-          分身正在整理昨日的一切...
-        </p>
-      </main>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #e0f2fe, #bae6fd, #f0f9ff)" }}>
+        <div className="text-center space-y-4">
+          <div className="text-5xl wave inline-block">🪷</div>
+          <p className="text-sky-600 font-semibold">分身正在整理昨日的一切...</p>
+          <div className="flex gap-1.5 justify-center">
+            {[0,1,2].map(i => <div key={i} className="w-2 h-2 rounded-full bg-sky-400 animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />)}
+          </div>
+        </div>
+      </div>
     );
   }
-
   if (!feed) return null;
 
+  const currentCat = feed.categories[activeCat];
+  const gradClass = CAT_COLORS[currentCat?.category] || "from-sky-500 to-blue-600";
+
   return (
-    <main className="min-h-screen bg-stone-950 text-stone-100">
+    <div className="min-h-screen" style={{ background: "linear-gradient(160deg, #f0f9ff 0%, #e0f2fe 50%, #f0fdf4 100%)" }}>
       {/* Nav */}
-      <nav className="border-b border-stone-800 px-6 py-4 flex items-center justify-between">
-        <span className="text-stone-400 text-xs tracking-widest">🪷 我来看看</span>
-        <div className="flex gap-6 text-xs text-stone-500">
-          <Link href="/avatar" className="text-stone-300">我的分身</Link>
-          <Link href="/plaza" className="hover:text-stone-300 transition-colors">分身广场</Link>
+      <nav className="sticky top-0 z-20 bg-white/70 backdrop-blur-md border-b border-sky-100 px-6 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">🪷</span>
+          <span className="text-sky-700 font-bold text-sm" style={{ fontFamily: "var(--font-syne)" }}>我来看看</span>
+        </div>
+        <div className="flex gap-1">
+          {(["我的分身", "分身广场"] as const).map((label, i) => (
+            <Link key={label} href={i === 0 ? "/avatar" : "/plaza"}
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${i === 0 ? "bg-sky-500 text-white shadow-sm" : "text-sky-500 hover:bg-sky-50"}`}>
+              {label}
+            </Link>
+          ))}
         </div>
       </nav>
 
-      {/* Avatar Header */}
-      <div className="px-6 py-8 border-b border-stone-800">
-        <p className="text-stone-500 text-xs tracking-widest mb-1">{feed.date}</p>
-        <h2 className="text-2xl font-light text-stone-100">
-          {feed.avatarName} 的昨日游历
-        </h2>
-        <p className="text-stone-500 text-sm mt-2 leading-relaxed max-w-lg">
-          {feed.dailySummary}
+      {/* Header */}
+      <div className="px-6 pt-8 pb-6 max-w-4xl mx-auto">
+        <p className="text-sky-400 text-xs font-medium tracking-widest mb-1 uppercase">
+          {feed.date} · 昨日游历报告
         </p>
+        <h1 className="text-3xl font-bold text-sky-900 mb-2" style={{ fontFamily: "var(--font-syne)" }}>
+          {feed.avatarName} <span className="text-sky-400 font-normal text-xl">带回来了什么</span>
+        </h1>
+        <p className="text-sky-600/70 text-sm leading-relaxed max-w-xl">{feed.dailySummary}</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-stone-800 px-6">
-        {[
-          { key: "feed", label: "今日推荐" },
-          { key: "timeline", label: "时序流程" },
-          { key: "chat", label: "与分身对话" },
-        ].map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setActiveTab(t.key as "feed" | "timeline" | "chat")}
-            className={`py-3 mr-6 text-sm border-b-2 transition-colors ${
-              activeTab === t.key
-                ? "border-stone-300 text-stone-100"
-                : "border-transparent text-stone-500 hover:text-stone-400"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+      <div className="px-6 max-w-4xl mx-auto mb-6">
+        <div className="flex gap-1 bg-white/60 backdrop-blur-sm p-1 rounded-2xl border border-sky-100 w-fit">
+          {[
+            { key: "feed", label: "📋 今日推荐" },
+            { key: "timeline", label: "⏱ 时序流程" },
+            { key: "chat", label: "💬 与分身对话" },
+          ].map((t) => (
+            <button key={t.key} onClick={() => setActiveTab(t.key as typeof activeTab)}
+              className={`px-5 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === t.key ? "bg-sky-500 text-white shadow-sm" : "text-sky-500 hover:bg-sky-50"}`}>
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Feed Tab */}
       {activeTab === "feed" && (
-        <div className="px-6 py-6 max-w-4xl">
+        <div className="px-6 pb-12 max-w-4xl mx-auto space-y-6">
           {/* Top 3 */}
-          <div className="mb-8">
-            <p className="text-stone-500 text-xs tracking-widest mb-4">最关键的三件事</p>
+          <div>
+            <h2 className="text-sky-700 font-bold text-sm mb-3 flex items-center gap-2">
+              <span className="bg-amber-400 text-white text-xs px-2 py-0.5 rounded-full">TOP</span>
+              最关键的三件事
+            </h2>
             <div className="grid gap-3">
               {feed.topThree.map((item, i) => (
-                <div key={i} className="bg-stone-900 p-4 flex gap-4">
-                  <span className="text-stone-600 text-2xl font-light shrink-0">{i + 1}</span>
+                <div key={i} className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-sky-50 hover-lift flex gap-4">
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${["from-amber-400 to-orange-500", "from-sky-400 to-blue-500", "from-emerald-400 to-teal-500"][i]} flex items-center justify-center text-white font-bold text-lg shrink-0`}>
+                    {i + 1}
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-stone-300 text-sm font-medium">{item.title}</p>
-                    <p className="text-stone-500 text-xs mt-1 leading-relaxed">{item.summary}</p>
+                    <p className="text-sky-900 text-sm font-semibold leading-snug">{item.title}</p>
+                    <p className="text-sky-500/80 text-xs mt-1 leading-relaxed line-clamp-2">{item.summary}</p>
                     <div className="flex items-center gap-3 mt-2">
-                      <span className="text-stone-600 text-xs">{item.category}</span>
+                      <span className="pill bg-sky-50 text-sky-500">{item.category}</span>
                       {item.sourceUrl && (
                         <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer"
-                          className="text-stone-600 text-xs hover:text-stone-400 transition-colors">
+                          className="text-sky-400 text-xs hover:text-sky-600 transition-colors font-medium">
                           查看原文 →
                         </a>
                       )}
@@ -127,46 +149,42 @@ export default function AvatarPage() {
             </div>
           </div>
 
-          {/* Category Tabs */}
-          <div className="flex gap-3 mb-6 flex-wrap">
-            {feed.categories.map((cat, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveCat(i)}
-                className={`px-3 py-1.5 text-xs transition-colors ${
-                  activeCat === i
-                    ? "bg-stone-100 text-stone-900"
-                    : "border border-stone-700 text-stone-500 hover:border-stone-500"
-                }`}
-              >
-                {cat.category}
-              </button>
-            ))}
+          {/* Category selector */}
+          <div>
+            <h2 className="text-sky-700 font-bold text-sm mb-3">六个维度</h2>
+            <div className="flex gap-2 flex-wrap">
+              {feed.categories.map((cat, i) => (
+                <button key={i} onClick={() => setActiveCat(i)}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeCat === i ? `bg-gradient-to-r ${CAT_COLORS[cat.category]} text-white shadow-md` : "bg-white/70 text-sky-600 hover:bg-white border border-sky-100"}`}>
+                  <span>{CAT_ICONS[cat.category]}</span>
+                  {cat.category}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Category Detail */}
-          <FeedCard item={feed.categories[activeCat]} avatarName={feed.avatarName} />
+          {/* Feed card */}
+          {currentCat && <FeedCard item={currentCat} avatarName={feed.avatarName} gradClass={gradClass} />}
         </div>
       )}
 
       {/* Timeline Tab */}
       {activeTab === "timeline" && (
-        <div className="px-6 py-6 max-w-2xl">
-          <p className="text-stone-500 text-xs tracking-widest mb-6">昨日时序流程</p>
-          <div className="space-y-4">
+        <div className="px-6 pb-12 max-w-2xl mx-auto">
+          <div className="space-y-0">
             {feed.timeline.map((event, i) => (
               <div key={i} className="flex gap-4">
                 <div className="flex flex-col items-center">
-                  <div className="w-2 h-2 rounded-full bg-stone-500 mt-1.5" />
-                  {i < feed.timeline.length - 1 && (
-                    <div className="w-px flex-1 bg-stone-800 mt-1" />
-                  )}
+                  <div className={`w-3 h-3 rounded-full bg-gradient-to-br ${["from-sky-400 to-blue-500", "from-emerald-400 to-teal-500", "from-purple-400 to-pink-500", "from-rose-400 to-orange-500", "from-amber-400 to-yellow-500", "from-cyan-400 to-sky-500"][i % 6]} mt-1.5 shrink-0`} />
+                  {i < feed.timeline.length - 1 && <div className="w-0.5 flex-1 bg-sky-100 mt-1" />}
                 </div>
-                <p className="text-stone-400 text-sm leading-relaxed pb-4">{event}</p>
+                <div className="pb-5">
+                  <p className="text-sky-800 text-sm leading-relaxed">{event}</p>
+                </div>
               </div>
             ))}
-            <div className="bg-stone-900 p-4 ml-6">
-              <p className="text-stone-400 text-sm leading-relaxed">{feed.dailySummary}</p>
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-sky-100 ml-7 mt-2">
+              <p className="text-sky-600 text-sm leading-relaxed">📊 {feed.dailySummary}</p>
             </div>
           </div>
         </div>
@@ -174,125 +192,123 @@ export default function AvatarPage() {
 
       {/* Chat Tab */}
       {activeTab === "chat" && (
-        <div className="flex flex-col h-[calc(100vh-200px)] max-w-2xl px-6 py-6">
-          <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-            {messages.length === 0 && (
-              <p className="text-stone-600 text-sm text-center py-8">
-                和你的分身说说话吧。告诉它你对今天内容的感受，或者任何想说的。
-              </p>
-            )}
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-sm px-4 py-3 text-sm leading-relaxed ${
-                    msg.role === "user"
-                      ? "bg-stone-700 text-stone-100"
-                      : "bg-stone-900 text-stone-300"
-                  }`}
-                >
-                  {msg.role === "avatar" && (
-                    <p className="text-stone-500 text-xs mb-1">
-                      {feed.avatarName}
-                    </p>
-                  )}
-                  {msg.text}
-                </div>
+        <div className="px-6 pb-6 max-w-2xl mx-auto">
+          <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-sky-100 overflow-hidden shadow-lg">
+            {/* Chat header */}
+            <div className={`bg-gradient-to-r ${gradClass} px-5 py-4 flex items-center gap-3`}>
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white text-lg">🪷</div>
+              <div>
+                <p className="text-white font-semibold text-sm">{feed.avatarName}</p>
+                <p className="text-white/70 text-xs">你的AI分身 · 随时在线</p>
               </div>
-            ))}
-            {chatLoading && (
-              <div className="flex justify-start">
-                <div className="bg-stone-900 px-4 py-3 text-stone-500 text-sm animate-pulse">
-                  {feed.avatarName} 正在思考...
-                </div>
-              </div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
+            </div>
 
-          <div className="flex gap-3">
-            <input
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              placeholder="说点什么..."
-              className="flex-1 bg-stone-900 border border-stone-700 text-stone-100 placeholder:text-stone-600 px-4 py-3 text-sm focus:outline-none focus:border-stone-500 transition-colors"
-            />
-            <button
-              onClick={sendMessage}
-              disabled={!chatInput.trim() || chatLoading}
-              className="px-6 py-3 bg-stone-100 text-stone-900 text-sm disabled:opacity-30 hover:bg-stone-200 transition-colors"
-            >
-              发送
-            </button>
+            {/* Messages */}
+            <div className="h-80 overflow-y-auto p-4 space-y-3">
+              {messages.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-full text-center space-y-3">
+                  <span className="text-4xl">💬</span>
+                  <p className="text-sky-400 text-sm">和你的分身聊聊吧<br />告诉它你对今天内容的感受</p>
+                </div>
+              )}
+              {messages.map((msg, i) => (
+                <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-xs px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${msg.role === "user"
+                    ? "bg-sky-500 text-white rounded-br-sm"
+                    : "bg-sky-50 text-sky-800 rounded-bl-sm border border-sky-100"}`}>
+                    {msg.role === "avatar" && <p className="text-sky-400 text-xs mb-1 font-medium">{feed.avatarName}</p>}
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+              {chatLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-sky-50 border border-sky-100 px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1.5">
+                    {[0,1,2].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-bounce" style={{ animationDelay: `${i*0.15}s` }} />)}
+                  </div>
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Input */}
+            <div className="border-t border-sky-100 p-3 flex gap-2">
+              <input value={chatInput} onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+                placeholder="说点什么..."
+                className="flex-1 bg-sky-50 border border-sky-100 text-sky-900 placeholder:text-sky-300 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-sky-300 transition-colors" />
+              <button onClick={sendMessage} disabled={!chatInput.trim() || chatLoading}
+                className="px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all disabled:opacity-40"
+                style={{ background: chatInput.trim() ? "linear-gradient(135deg, #0ea5e9, #0284c7)" : "#bae6fd" }}>
+                发送
+              </button>
+            </div>
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }
 
-function FeedCard({ item, avatarName }: { item: FeedItem; avatarName: string }) {
+function FeedCard({ item, avatarName, gradClass }: { item: FeedItem; avatarName: string; gradClass: string }) {
   return (
-    <div className="space-y-6">
-      <div className="bg-stone-900 p-6 space-y-4">
-        <div>
-          <div className="flex items-start justify-between gap-4 mb-2">
-            <p className="text-stone-500 text-xs tracking-widest">事情描述</p>
-            {item.sourceUrl && (
-              <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer"
-                className="text-stone-500 text-xs hover:text-stone-300 transition-colors border-b border-stone-700 hover:border-stone-500 shrink-0">
-                来源：{item.sourceName || "原文"} →
-              </a>
-            )}
+    <div className="space-y-4">
+      <div className="bg-white/80 backdrop-blur-sm rounded-3xl border border-sky-50 overflow-hidden shadow-sm">
+        {/* Card header */}
+        <div className={`bg-gradient-to-r ${gradClass} px-6 py-4 flex items-start justify-between gap-4`}>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full font-medium">事情描述</span>
+              {item.sourceName && <span className="text-white/70 text-xs">{item.sourceName}</span>}
+            </div>
+            <h3 className="text-white font-bold text-base leading-snug">{item.title}</h3>
           </div>
-          <h3 className="text-stone-100 text-lg font-light leading-relaxed">{item.title}</h3>
-          <p className="text-stone-400 text-sm mt-2 leading-relaxed">{item.summary}</p>
           {item.sourceUrl && (
             <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer"
-              className="inline-block mt-3 px-3 py-1.5 border border-stone-700 text-stone-500 text-xs hover:border-stone-500 hover:text-stone-300 transition-colors">
-              查看原文 →
+              className="bg-white/20 hover:bg-white/30 text-white text-xs px-3 py-1.5 rounded-xl font-medium transition-colors shrink-0 flex items-center gap-1">
+              原文 →
             </a>
           )}
         </div>
 
-        <div>
-          <p className="text-stone-500 text-xs tracking-widest mb-3">维度评价</p>
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(item.dimensions).map(([key, val]) => {
-              const labels: Record<string, string> = {
-                feeling: "感受", attraction: "吸引力",
-                comfort: "舒适", desire: "欲望", resonance: "契合",
-              };
-              return (
-                <span key={key} className="px-3 py-1 border border-stone-700 text-stone-400 text-xs">
-                  {labels[key]}：{val}
-                </span>
-              );
-            })}
-          </div>
-        </div>
+        <div className="px-6 py-4 space-y-4">
+          <p className="text-sky-700 text-sm leading-relaxed">{item.summary}</p>
 
-        <div>
-          <p className="text-stone-500 text-xs tracking-widest mb-2">{avatarName} 的体验</p>
-          <p className="text-stone-400 text-sm leading-relaxed italic">
-            &ldquo;{item.avatarExperience}&rdquo;
-          </p>
+          {/* Dimensions */}
+          <div>
+            <p className="text-sky-400 text-xs font-medium mb-2 uppercase tracking-wider">维度评价</p>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(item.dimensions).map(([key, val]) => {
+                const labels: Record<string, string> = { feeling: "感受", attraction: "吸引力", comfort: "舒适", desire: "欲望", resonance: "契合" };
+                return (
+                  <span key={key} className="pill bg-sky-50 text-sky-600 border border-sky-100">
+                    {labels[key]}：<span className="font-semibold">{val}</span>
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Avatar experience */}
+          <div className="bg-sky-50 rounded-2xl p-4 border border-sky-100">
+            <p className="text-sky-400 text-xs font-medium mb-2">{avatarName} 的体验感受</p>
+            <p className="text-sky-700 text-sm leading-relaxed italic">&ldquo;{item.avatarExperience}&rdquo;</p>
+          </div>
         </div>
       </div>
 
+      {/* More items */}
       {item.moreItems.length > 0 && (
         <div>
-          <p className="text-stone-500 text-xs tracking-widest mb-3">更多相关内容</p>
+          <p className="text-sky-500 text-xs font-medium mb-2 uppercase tracking-wider">更多相关内容</p>
           <div className="space-y-2">
             {item.moreItems.map((more, i) => (
-              <a key={i} href={typeof more === "string" ? "#" : more.url}
+              <a key={i}
+                href={typeof more === "string" ? "#" : more.url}
                 target="_blank" rel="noopener noreferrer"
-                className="flex items-center justify-between bg-stone-900 px-4 py-3 text-stone-400 text-sm hover:bg-stone-800 hover:text-stone-300 transition-colors group">
-                <span>{typeof more === "string" ? more : more.title}</span>
-                <span className="text-stone-600 group-hover:text-stone-400 text-xs ml-3 shrink-0">→</span>
+                className="flex items-center justify-between bg-white/70 hover:bg-white border border-sky-50 hover:border-sky-200 px-4 py-3 rounded-xl text-sky-700 text-sm hover-lift transition-all group">
+                <span className="line-clamp-1">{typeof more === "string" ? more : more.title}</span>
+                <span className="text-sky-300 group-hover:text-sky-500 ml-3 shrink-0 transition-colors">→</span>
               </a>
             ))}
           </div>
