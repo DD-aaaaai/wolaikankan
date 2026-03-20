@@ -8,6 +8,21 @@ interface ReportSection {
   content: string;
 }
 
+interface GameRecommendation {
+  id: string;
+  name: string;
+  nameEn: string;
+  genre: string[];
+  platform: string;
+  coverEmoji: string;
+  shortDesc: string;
+  detailDesc: string;
+  whyForYou: string;
+  matchTags: string[];
+  links: { steam?: string; gamersky: string; threeDm: string };
+  tags: string[];
+}
+
 interface GameItem {
   id: string;
   name: string;
@@ -45,6 +60,8 @@ export default function AvatarPage() {
   const [games, setGames] = useState<GameItem[]>([]);
   const [gamesAvatarName, setGamesAvatarName] = useState("分身");
   const [selectedGame, setSelectedGame] = useState<GameItem | null>(null);
+  const [recommendations, setRecommendations] = useState<GameRecommendation[]>([]);
+  const [expandedRec, setExpandedRec] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -54,6 +71,9 @@ export default function AvatarPage() {
     fetch("/api/games")
       .then((r) => r.json())
       .then((d) => { setGames(d.games || []); setGamesAvatarName(d.avatarName || "分身"); });
+    fetch("/api/game-recommendations")
+      .then((r) => r.json())
+      .then((d) => setRecommendations(d.recommendations || []));
   }, []);
 
   useEffect(() => {
@@ -240,11 +260,41 @@ export default function AvatarPage() {
           {selectedGame ? (
             <GameDetail game={selectedGame} avatarName={gamesAvatarName} onBack={() => setSelectedGame(null)} />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
-              {games.map((game) => (
-                <GameCard key={game.id} game={game} onClick={() => setSelectedGame(game)} />
-              ))}
-            </div>
+            <>
+              {/* H5 小游戏 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {games.map((game) => (
+                  <GameCard key={game.id} game={game} onClick={() => setSelectedGame(game)} />
+                ))}
+              </div>
+
+              {/* 大型 3D 游戏推荐 */}
+              {recommendations.length > 0 && (
+                <div className="space-y-4 mt-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-px bg-sky-100" />
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🎯</span>
+                      <p className="text-sky-700 font-bold text-sm">分身为你精选的大型 3D 游戏</p>
+                      <span className="bg-sky-100 text-sky-500 text-xs px-2 py-0.5 rounded-full">基于你的人设</span>
+                    </div>
+                    <div className="flex-1 h-px bg-sky-100" />
+                  </div>
+                  <p className="text-sky-400 text-xs text-center">来自游民星空、3DM、Steam 的热门游戏，{gamesAvatarName} 根据你的性格和目标为你挑选</p>
+                  <div className="space-y-4">
+                    {recommendations.map((rec) => (
+                      <BigGameCard
+                        key={rec.id}
+                        rec={rec}
+                        expanded={expandedRec === rec.id}
+                        onToggle={() => setExpandedRec(expandedRec === rec.id ? null : rec.id)}
+                        avatarName={gamesAvatarName}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
@@ -433,6 +483,106 @@ function GameDetail({ game, avatarName, onBack }: { game: GameItem; avatarName: 
           </a>
         </div>
       </div>
+    </div>
+  );
+}
+
+const REC_GRAD: Record<string, string> = {
+  "动作RPG": "from-orange-500 to-red-600",
+  "魂类动作": "from-slate-600 to-zinc-700",
+  "开放世界RPG": "from-violet-500 to-purple-700",
+  "回合制RPG": "from-amber-500 to-yellow-600",
+  "开放世界": "from-rose-500 to-pink-600",
+  "动作冒险": "from-blue-500 to-indigo-700",
+  "步行模拟": "from-teal-500 to-cyan-700",
+};
+
+function BigGameCard({
+  rec, expanded, onToggle, avatarName,
+}: {
+  rec: GameRecommendation;
+  expanded: boolean;
+  onToggle: () => void;
+  avatarName: string;
+}) {
+  const grad = REC_GRAD[rec.genre[0]] || "from-sky-500 to-blue-700";
+  return (
+    <div className="bg-white/85 backdrop-blur-sm rounded-3xl border border-sky-50 overflow-hidden hover:border-sky-200 transition-all shadow-sm">
+      {/* Header */}
+      <button onClick={onToggle} className="w-full text-left">
+        <div className={`bg-gradient-to-r ${grad} px-6 py-4 flex items-center gap-4`}>
+          <span className="text-4xl shrink-0">{rec.coverEmoji}</span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              {rec.genre.map((g) => (
+                <span key={g} className="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full">{g}</span>
+              ))}
+              <span className="bg-white/10 text-white/70 text-xs px-2 py-0.5 rounded-full">{rec.platform}</span>
+            </div>
+            <p className="text-white font-bold text-lg leading-tight">{rec.name}</p>
+            <p className="text-white/70 text-xs mt-0.5">{rec.nameEn}</p>
+          </div>
+          <div className="shrink-0 text-white/70 text-sm">{expanded ? "▲" : "▼"}</div>
+        </div>
+        {/* Preview strip */}
+        <div className="px-6 py-3 border-b border-sky-50">
+          <p className="text-sky-600 text-sm leading-relaxed">{rec.shortDesc}</p>
+          {rec.matchTags.length > 0 && (
+            <div className="flex gap-1.5 mt-2 flex-wrap">
+              {rec.matchTags.map((t) => (
+                <span key={t} className="bg-amber-50 text-amber-600 text-xs px-2 py-0.5 rounded-full border border-amber-200">✦ 契合「{t}」</span>
+              ))}
+            </div>
+          )}
+        </div>
+      </button>
+
+      {/* Expanded detail */}
+      {expanded && (
+        <div className="px-6 py-5 space-y-5">
+          {/* 分身推荐理由 */}
+          <div className="bg-sky-50 rounded-2xl p-4 border border-sky-100">
+            <p className="text-sky-400 text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <span>🪷</span> {avatarName} 为什么推荐你玩这个
+            </p>
+            <p className="text-sky-800 text-sm leading-relaxed">{rec.whyForYou}</p>
+          </div>
+
+          {/* 详细说明 */}
+          <div>
+            <p className="text-sky-400 text-xs font-semibold uppercase tracking-wider mb-3">游戏详情</p>
+            <p className="text-sky-700 text-sm leading-relaxed whitespace-pre-line">{rec.detailDesc}</p>
+          </div>
+
+          {/* 标签 */}
+          <div className="flex flex-wrap gap-2">
+            {rec.tags.map((tag) => (
+              <span key={tag} className={`bg-gradient-to-r ${grad} text-white text-xs px-3 py-1 rounded-full`}>{tag}</span>
+            ))}
+          </div>
+
+          {/* 链接 */}
+          <div>
+            <p className="text-sky-400 text-xs font-semibold uppercase tracking-wider mb-3">去哪里了解</p>
+            <div className="flex gap-2 flex-wrap">
+              {rec.links.steam && (
+                <a href={rec.links.steam} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-slate-800 text-white hover:bg-slate-700 transition-colors">
+                  🎮 Steam 页面 ↗
+                </a>
+              )}
+              <a href={rec.links.gamersky} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-sky-100 text-sky-700 hover:bg-sky-200 transition-colors border border-sky-200">
+                游民星空评测 ↗
+              </a>
+              <a href={rec.links.threeDm} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium bg-sky-50 text-sky-600 hover:bg-sky-100 transition-colors border border-sky-100">
+                3DM 攻略 ↗
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
