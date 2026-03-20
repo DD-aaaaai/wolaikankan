@@ -3,6 +3,11 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import type { DailyFeedData, FeedItem } from "@/lib/feedGenerator";
+interface ReportSection {
+  title: string;
+  content: string;
+}
+
 interface GameItem {
   id: string;
   name: string;
@@ -13,6 +18,7 @@ interface GameItem {
   avatarReview: string;
   dimensions: { fun: string; challenge: string; engagement: string; time: string };
   tags: string[];
+  report?: ReportSection[];
 }
 
 const CAT_ICONS: Record<string, string> = {
@@ -367,13 +373,31 @@ function GameDetail({ game, avatarName, onBack }: { game: GameItem; avatarName: 
           </div>
         </div>
         <div className="p-6 space-y-5">
-          {/* Avatar review */}
-          <div className="bg-sky-50 rounded-2xl p-5 border border-sky-100">
-            <p className="text-sky-400 text-xs font-medium mb-3 flex items-center gap-1.5">
-              <span>🪷</span> {avatarName} 的亲身体验
-            </p>
-            <p className="text-sky-800 text-sm leading-relaxed">&ldquo;{game.avatarReview}&rdquo;</p>
-          </div>
+          {/* Avatar review — 2048 显示深度报告，其他游戏显示简短感受 */}
+          {game.report && game.report.length > 0 ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-lg">🪷</span>
+                <p className="text-sky-700 font-bold text-sm">{avatarName} 的深度体验报告</p>
+                <span className="bg-amber-100 text-amber-600 text-xs px-2 py-0.5 rounded-full font-medium">专属定制</span>
+              </div>
+              {game.report.map((section, i) => (
+                <div key={i} className="bg-sky-50 rounded-2xl p-4 border border-sky-100">
+                  <p className="text-sky-500 text-xs font-semibold uppercase tracking-wider mb-2">
+                    {["01", "02", "03", "04"][i] ?? `0${i + 1}`} · {section.title}
+                  </p>
+                  <p className="text-sky-800 text-sm leading-relaxed whitespace-pre-line">{section.content}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-sky-50 rounded-2xl p-5 border border-sky-100">
+              <p className="text-sky-400 text-xs font-medium mb-3 flex items-center gap-1.5">
+                <span>🪷</span> {avatarName} 的亲身体验
+              </p>
+              <p className="text-sky-800 text-sm leading-relaxed">&ldquo;{game.avatarReview}&rdquo;</p>
+            </div>
+          )}
 
           {/* Dimensions */}
           <div>
