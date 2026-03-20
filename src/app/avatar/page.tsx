@@ -3,7 +3,17 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import type { DailyFeedData, FeedItem } from "@/lib/feedGenerator";
-import type { GameItem } from "@/app/api/games/route";
+interface GameItem {
+  id: string;
+  name: string;
+  genre: string;
+  coverEmoji: string;
+  description: string;
+  url: string;
+  avatarReview: string;
+  dimensions: { fun: string; challenge: string; engagement: string; time: string };
+  tags: string[];
+}
 
 const CAT_ICONS: Record<string, string> = {
   工作: "💼", 成长: "🌱", 娱乐: "🎮", 健康: "💪", 关系: "💫", 其他: "✨",

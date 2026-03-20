@@ -159,7 +159,7 @@ export function generateMockFeed(
     const idx = (dateSeed + catIdx) % raw.items.length;
     const item = raw.items[idx];
     const moreIdx = (dateSeed + catIdx) % raw.more.length;
-    const catKey = key as keyof typeof RAW_CONTENT;
+    const catKey = key as "work" | "growth" | "entertainment" | "health" | "relationship" | "other";
     const { url, source } = makeSearchUrl(item.title, catKey);
 
     return {
