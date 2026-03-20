@@ -50,9 +50,13 @@ export default function PlazaPage() {
           <span className="text-sky-700 font-bold text-sm" style={{ fontFamily: "var(--font-syne)" }}>我来看看</span>
         </div>
         <div className="flex gap-1">
-          {(["我的分身", "分身广场"] as const).map((label, i) => (
-            <Link key={label} href={i === 0 ? "/avatar" : "/plaza"}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${i === 1 ? "bg-sky-500 text-white shadow-sm" : "text-sky-500 hover:bg-sky-50"}`}>
+          {[
+            { label: "我的分身", href: "/avatar", active: false },
+            { label: "分身广场", href: "/plaza", active: true },
+            { label: "设置分身", href: "/setup", active: false },
+          ].map(({ label, href, active }) => (
+            <Link key={label} href={href}
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${active ? "bg-sky-500 text-white shadow-sm" : "text-sky-500 hover:bg-sky-50"}`}>
               {label}
             </Link>
           ))}

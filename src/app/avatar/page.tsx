@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import type { DailyFeedData, FeedItem } from "@/lib/feedGenerator";
+import type { GameItem } from "@/app/api/games/route";
 
 const CAT_ICONS: Record<string, string> = {
   工作: "💼", 成长: "🌱", 娱乐: "🎮", 健康: "💪", 关系: "💫", 其他: "✨",
@@ -20,17 +21,23 @@ const CAT_COLORS: Record<string, string> = {
 export default function AvatarPage() {
   const [feed, setFeed] = useState<DailyFeedData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"feed" | "timeline" | "chat">("feed");
+  const [activeTab, setActiveTab] = useState<"feed" | "timeline" | "chat" | "games">("feed");
   const [activeCat, setActiveCat] = useState(0);
   const [messages, setMessages] = useState<{ role: "user" | "avatar"; text: string }[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
+  const [games, setGames] = useState<GameItem[]>([]);
+  const [gamesAvatarName, setGamesAvatarName] = useState("分身");
+  const [selectedGame, setSelectedGame] = useState<GameItem | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch("/api/feed")
       .then((r) => r.json())
       .then((d) => { setFeed(d.feed); setLoading(false); });
+    fetch("/api/games")
+      .then((r) => r.json())
+      .then((d) => { setGames(d.games || []); setGamesAvatarName(d.avatarName || "分身"); });
   }, []);
 
   useEffect(() => {
@@ -80,9 +87,13 @@ export default function AvatarPage() {
           <span className="text-sky-700 font-bold text-sm" style={{ fontFamily: "var(--font-syne)" }}>我来看看</span>
         </div>
         <div className="flex gap-1">
-          {(["我的分身", "分身广场"] as const).map((label, i) => (
-            <Link key={label} href={i === 0 ? "/avatar" : "/plaza"}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${i === 0 ? "bg-sky-500 text-white shadow-sm" : "text-sky-500 hover:bg-sky-50"}`}>
+          {[
+            { label: "我的分身", href: "/avatar", active: true },
+            { label: "分身广场", href: "/plaza", active: false },
+            { label: "设置分身", href: "/setup", active: false },
+          ].map(({ label, href, active }) => (
+            <Link key={label} href={href}
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${active ? "bg-sky-500 text-white shadow-sm" : "text-sky-500 hover:bg-sky-50"}`}>
               {label}
             </Link>
           ))}
@@ -106,6 +117,7 @@ export default function AvatarPage() {
           {[
             { key: "feed", label: "📋 今日推荐" },
             { key: "timeline", label: "⏱ 时序流程" },
+            { key: "games", label: "🎮 游戏体验" },
             { key: "chat", label: "💬 与分身对话" },
           ].map((t) => (
             <button key={t.key} onClick={() => setActiveTab(t.key as typeof activeTab)}
@@ -198,6 +210,29 @@ export default function AvatarPage() {
         </div>
       )}
 
+      {/* Games Tab */}
+      {activeTab === "games" && (
+        <div className="px-6 pb-12 max-w-4xl mx-auto space-y-6">
+          <div>
+            <p className="text-sky-400 text-xs font-medium tracking-widest uppercase mb-1">分身游戏体验站</p>
+            <h2 className="text-sky-900 font-bold text-xl mb-1" style={{ fontFamily: "var(--font-syne)" }}>
+              {gamesAvatarName} 最近在玩这些 🎮
+            </h2>
+            <p className="text-sky-500/70 text-sm">分身亲身体验了这些热门 H5 小游戏，并留下了它的真实感受。</p>
+          </div>
+
+          {selectedGame ? (
+            <GameDetail game={selectedGame} avatarName={gamesAvatarName} onBack={() => setSelectedGame(null)} />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+              {games.map((game) => (
+                <GameCard key={game.id} game={game} onClick={() => setSelectedGame(game)} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Chat Tab */}
       {activeTab === "chat" && (
         <div className="px-6 pb-6 max-w-2xl mx-auto">
@@ -254,6 +289,149 @@ export default function AvatarPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+const GAME_GENRE_COLORS: Record<string, string> = {
+  "益智休闲": "from-emerald-400 to-teal-500",
+  "射击消除": "from-rose-400 to-red-500",
+  "动作射击": "from-orange-400 to-amber-500",
+  "塔防策略": "from-indigo-400 to-violet-500",
+  "跑酷": "from-sky-400 to-blue-500",
+  "益智消除": "from-purple-400 to-pink-500",
+  "数字益智": "from-cyan-400 to-sky-500",
+  "休闲挑战": "from-lime-400 to-green-500",
+};
+
+function GameCard({ game, onClick }: { game: GameItem; onClick: () => void }) {
+  const grad = GAME_GENRE_COLORS[game.genre] || "from-sky-400 to-blue-500";
+  return (
+    <button onClick={onClick} className="bg-white/80 backdrop-blur-sm rounded-3xl border border-sky-50 hover:border-sky-200 overflow-hidden hover-lift transition-all text-left w-full">
+      <div className={`bg-gradient-to-r ${grad} px-5 py-4 flex items-center gap-3`}>
+        <span className="text-4xl">{game.coverEmoji}</span>
+        <div>
+          <p className="text-white font-bold text-base">{game.name}</p>
+          <p className="text-white/70 text-xs">{game.genre}</p>
+        </div>
+      </div>
+      <div className="p-4 space-y-3">
+        <p className="text-sky-600 text-xs leading-relaxed line-clamp-2">{game.description}</p>
+        <div className="flex flex-wrap gap-1.5">
+          {game.tags.map((tag) => (
+            <span key={tag} className="bg-sky-50 text-sky-500 text-xs px-2 py-0.5 rounded-full border border-sky-100">{tag}</span>
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {Object.entries(game.dimensions).map(([k, v]) => {
+            const labels: Record<string, string> = { fun: "趣味", challenge: "挑战", engagement: "沉浸", time: "节奏" };
+            return (
+              <div key={k} className="bg-sky-50 rounded-lg px-2.5 py-1.5">
+                <p className="text-sky-400 text-xs">{labels[k]}</p>
+                <p className="text-sky-700 text-xs font-semibold">{v}</p>
+              </div>
+            );
+          })}
+        </div>
+        <p className="text-sky-400 text-xs font-medium flex items-center gap-1">
+          查看分身感受 <span>→</span>
+        </p>
+      </div>
+    </button>
+  );
+}
+
+function GameDetail({ game, avatarName, onBack }: { game: GameItem; avatarName: string; onBack: () => void }) {
+  const grad = GAME_GENRE_COLORS[game.genre] || "from-sky-400 to-blue-500";
+  const [playing, setPlaying] = useState(false);
+  return (
+    <div className="space-y-4">
+      <button onClick={onBack} className="flex items-center gap-1.5 text-sky-500 hover:text-sky-700 text-sm font-medium transition-colors">
+        ← 返回游戏列表
+      </button>
+      <div className="bg-white/80 backdrop-blur-sm rounded-3xl border border-sky-50 overflow-hidden shadow-sm">
+        <div className={`bg-gradient-to-r ${grad} px-6 py-5 flex items-center gap-4`}>
+          <span className="text-5xl">{game.coverEmoji}</span>
+          <div className="flex-1">
+            <p className="text-white font-bold text-xl">{game.name}</p>
+            <p className="text-white/70 text-sm">{game.genre} · {game.description}</p>
+          </div>
+        </div>
+        <div className="p-6 space-y-5">
+          {/* Avatar review */}
+          <div className="bg-sky-50 rounded-2xl p-5 border border-sky-100">
+            <p className="text-sky-400 text-xs font-medium mb-3 flex items-center gap-1.5">
+              <span>🪷</span> {avatarName} 的亲身体验
+            </p>
+            <p className="text-sky-800 text-sm leading-relaxed">&ldquo;{game.avatarReview}&rdquo;</p>
+          </div>
+
+          {/* Dimensions */}
+          <div>
+            <p className="text-sky-400 text-xs font-medium mb-3 uppercase tracking-wider">体验维度</p>
+            <div className="grid grid-cols-2 gap-3">
+              {Object.entries(game.dimensions).map(([k, v]) => {
+                const labels: Record<string, string> = { fun: "趣味感", challenge: "挑战性", engagement: "沉浸度", time: "时间节奏" };
+                return (
+                  <div key={k} className="bg-white border border-sky-100 rounded-xl px-4 py-3">
+                    <p className="text-sky-400 text-xs mb-1">{labels[k]}</p>
+                    <p className="text-sky-800 font-semibold text-sm">{v}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Tags */}
+          <div className="flex flex-wrap gap-2">
+            {game.tags.map((tag) => (
+              <span key={tag} className={`bg-gradient-to-r ${grad} text-white text-xs px-3 py-1 rounded-full`}>{tag}</span>
+            ))}
+          </div>
+
+          {/* Play section */}
+          <div className="space-y-3">
+            {!playing ? (
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setPlaying(true)}
+                  className={`flex-1 py-3.5 rounded-2xl font-bold text-sm text-white bg-gradient-to-r ${grad} hover:opacity-90 transition-opacity flex items-center justify-center gap-2`}
+                >
+                  🎮 在页面内体验
+                </button>
+                <a
+                  href={game.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-5 py-3.5 rounded-2xl font-medium text-sm text-sky-600 bg-sky-50 hover:bg-sky-100 border border-sky-200 transition-colors flex items-center gap-1"
+                >
+                  新窗口打开 ↗
+                </a>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-sky-600 text-sm font-medium">🎮 游戏加载中...</p>
+                  <button onClick={() => setPlaying(false)} className="text-sky-400 text-xs hover:text-sky-600 transition-colors">关闭</button>
+                </div>
+                <div className="rounded-2xl overflow-hidden border border-sky-200 bg-sky-50" style={{ height: "480px" }}>
+                  <iframe
+                    src={game.url}
+                    className="w-full h-full"
+                    title={game.name}
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                  />
+                </div>
+                <p className="text-sky-400 text-xs text-center">如果游戏无法加载，请点击「新窗口打开」→</p>
+                <a href={game.url} target="_blank" rel="noopener noreferrer"
+                  className="block text-center text-sky-500 text-xs hover:text-sky-700 transition-colors font-medium py-1">
+                  在 4399 中打开 ↗
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
