@@ -70,10 +70,11 @@ export default function AvatarPage() {
       .then((d) => { setFeed(d.feed); setLoading(false); });
     fetch("/api/games")
       .then((r) => r.json())
-      .then((d) => { setGames(d.games || []); setGamesAvatarName(d.avatarName || "分身"); });
-    fetch("/api/game-recommendations")
-      .then((r) => r.json())
-      .then((d) => setRecommendations(d.recommendations || []));
+      .then((d) => {
+        setGames(d.games || []);
+        setGamesAvatarName(d.avatarName || "分身");
+        setRecommendations(d.recommendations || []);
+      });
   }, []);
 
   useEffect(() => {
@@ -269,7 +270,7 @@ export default function AvatarPage() {
               </div>
 
               {/* 大型 3D 游戏推荐 */}
-              {recommendations.length > 0 && (
+              {recommendations.length > 0 ? (
                 <div className="space-y-4 mt-4">
                   <div className="flex items-center gap-3">
                     <div className="flex-1 h-px bg-sky-100" />
@@ -293,6 +294,8 @@ export default function AvatarPage() {
                     ))}
                   </div>
                 </div>
+              ) : (
+                <div className="text-center py-8 text-sky-400 text-sm">大型游戏推荐加载中…</div>
               )}
             </>
           )}

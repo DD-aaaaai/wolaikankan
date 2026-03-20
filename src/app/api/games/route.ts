@@ -199,6 +199,129 @@ const BASE_GAMES: Omit<GameItem, "report">[] = [
   },
 ];
 
+// ── 大型3D游戏推荐数据库 ──────────────────────────────────────────
+
+interface GameRecommendation {
+  id: string; name: string; nameEn: string; genre: string[]; platform: string;
+  coverEmoji: string; shortDesc: string; detailDesc: string;
+  whyForYou: string; matchTags: string[];
+  links: { steam?: string; gamersky: string; threeDm: string };
+  tags: string[];
+}
+
+interface AvatarProfile {
+  avatarName?: string | null; personality?: string | null; occupation?: string | null;
+  goal?: string | null; story?: string | null; slogan?: string | null;
+}
+
+type PoolGame = Omit<GameRecommendation, "whyForYou" | "matchTags"> & {
+  matchKeywords: string[];
+  template: (p: AvatarProfile) => string;
+};
+
+const BIG_GAME_POOL: PoolGame[] = [
+  {
+    id: "black-myth", name: "黑神话：悟空", nameEn: "Black Myth: Wukong",
+    genre: ["动作RPG", "神话", "国产精品"], platform: "PC / PS5", coverEmoji: "🐒",
+    shortDesc: "首款国产3A大作，改编自《西游记》，斗战胜佛的前传故事",
+    detailDesc: `《黑神话：悟空》2024年8月发售后迅速成为Steam历史同时在线人数最高的单机游戏。\n\n玩家扮演「天命人」踏上寻找六根之物的征途，六回剧情覆盖山西古寺到热带密林，视觉极具中国美学特色。\n\n战斗系统深度而流畅：变身技能、棍法与魔法可以自由组合，每场Boss战都是独立叙事体验——你会在战斗中理解这个角色为何变成了怪物。\n\n这不只是一款游戏，更是中国文化输出的里程碑。`,
+    matchKeywords: ["文化", "哲学", "艺术", "创意", "设计", "中国", "传统", "故事", "叙事", "国学", "美学"],
+    template: (p) => `以${p.personality || "对事物有深度思考"}的你来说，《黑神话》的叙事层次会让你着迷——每一个妖怪都是一段人性的寓言，而不只是需要击败的障碍。${p.occupation ? `作为${p.occupation}，` : ""}你会在这个游戏里看到中国文化被以前所未有的方式重新诠释。`,
+    links: { steam: "https://store.steampowered.com/app/2358720/", gamersky: "https://www.gamersky.com/search/黑神话悟空/", threeDm: "https://www.3dmgame.com/search/黑神话悟空/" },
+    tags: ["国产3A", "神话", "动作", "Boss战", "必玩"],
+  },
+  {
+    id: "elden-ring", name: "艾尔登法环", nameEn: "Elden Ring",
+    genre: ["魂类动作", "开放世界", "黑暗奇幻"], platform: "PC / PS5 / Xbox", coverEmoji: "⚔️",
+    shortDesc: "宫崎英高 × 乔治·马丁打造，魂类游戏史上最高评分作品",
+    detailDesc: `《艾尔登法环》2022年发售后斩获众多年度游戏大奖，Metacritic评分96分。\n\n广袤的「交界地」开放世界，每一片新区域的解锁都是对探索精神的奖励，地下城、古遗址、隐藏BOSS遍布各处。\n\n战斗继承魂系高难度与高成就感：精准翻滚时机、武器战技系统、元素属性搭配，每一次击败强大Boss都是真实成就。\n\n世界观叙事极其独特：所有故事藏在道具描述、NPC只言片语和场景细节里，等待好奇心旺盛的人去拼凑。`,
+    matchKeywords: ["挑战", "坚持", "成长", "探索", "逻辑", "分析", "研究", "独立", "自主"],
+    template: (p) => `《艾尔登法环》为愿意在挫败中成长的人而设计。${p.goal ? `你的目标是「${p.goal}」——` : ""}在这个游戏里，每一次死亡都是一次数据，每一次重试都是一次迭代。这种思维方式，会让你比大多数玩家更快找到攻略Boss的规律。`,
+    links: { steam: "https://store.steampowered.com/app/1245620/", gamersky: "https://www.gamersky.com/search/艾尔登法环/", threeDm: "https://www.3dmgame.com/search/艾尔登法环/" },
+    tags: ["魂类", "高难度", "开放世界", "年度游戏", "史诗"],
+  },
+  {
+    id: "cyberpunk", name: "赛博朋克 2077", nameEn: "Cyberpunk 2077",
+    genre: ["开放世界RPG", "科幻", "动作"], platform: "PC / PS5 / Xbox", coverEmoji: "🤖",
+    shortDesc: "近未来夜之城，在霓虹与阴暗之间寻找真正的自由",
+    detailDesc: `《赛博朋克2077》经2.0版本大改后，成为近年口碑最高的开放世界游戏之一。\n\n2077年夜之城：企业权力凌驾于政府的反乌托邦大都会。玩家扮演雇佣兵「V」，因意外将传奇摇滚明星数字残魂植入脑中，展开寻找解法的旅程。多条主线分支，不同选择导向截然不同的结局。\n\n游戏世界细节密度惊人：每个NPC有自己的日程，广告牌文字充满讽刺，2.0版本技能树可打造黑客流、刀客流、枪手流等完全不同风格。\n\n《幻影自由》DLC是近年最好的游戏叙事之一。`,
+    matchKeywords: ["技术", "程序", "AI", "科技", "未来", "互联网", "创业", "产品", "系统", "数字", "自由"],
+    template: (p) => `${p.occupation ? `作为${p.occupation}，` : ""}你每天面对的关于技术与人性边界的问题，《赛博朋克》用极致的反乌托邦世界给出了一种答案。游戏里的「义体改造」和「数字意识」，是对当下技术发展最尖锐的提问。`,
+    links: { steam: "https://store.steampowered.com/app/1091500/", gamersky: "https://www.gamersky.com/search/赛博朋克2077/", threeDm: "https://www.3dmgame.com/search/赛博朋克2077/" },
+    tags: ["科幻", "开放世界", "赛博朋克", "多结局", "神作"],
+  },
+  {
+    id: "baldurs-gate-3", name: "博德之门 3", nameEn: "Baldur's Gate 3",
+    genre: ["回合制RPG", "奇幻", "策略"], platform: "PC / PS5", coverEmoji: "🎲",
+    shortDesc: "史上最佳RPG之一，每一个选择都真实影响世界走向",
+    detailDesc: `《博德之门3》2023年横扫几乎所有年度游戏奖项，被IGN、Metacritic评为史上最佳RPG之一。\n\n12个种族、12个职业及大量子职业，角色创建深度极高。被心灵杀手蝌蚪寄生的五位角色被迫同行，寻找治愈方法，随着剧情深入揭示更宏大的阴谋。\n\n选择的真实性令人惊叹：战斗、谈判、偷窃、魔法欺骗，几乎可以用任何方式解决任何问题。每个同伴都有完整的价值观和心理弧线。\n\n四人联机模式：不同玩家的选择可能在同一局造成完全对立的后果。`,
+    matchKeywords: ["策略", "选择", "团队", "管理", "决策", "逻辑", "规划", "创业", "社交", "关系", "协作"],
+    template: (p) => `《博德之门3》最契合${p.personality || "注重思考与决策"}的人——游戏里的每一个选择都有真实后果，没有「正确答案」，只有「你是谁」的答案。${p.goal ? `你的目标「${p.goal}」，` : ""}会在游戏里以意想不到的方式得到共鸣。`,
+    links: { steam: "https://store.steampowered.com/app/1086940/", gamersky: "https://www.gamersky.com/search/博德之门3/", threeDm: "https://www.3dmgame.com/search/博德之门3/" },
+    tags: ["RPG神作", "策略", "龙与地下城", "年度游戏", "多人联机"],
+  },
+  {
+    id: "rdr2", name: "荒野大镖客：救赎 2", nameEn: "Red Dead Redemption 2",
+    genre: ["开放世界", "西部", "叙事"], platform: "PC / PS4 / Xbox", coverEmoji: "🤠",
+    shortDesc: "史上叙事最丰富的开放世界，关于一个时代的末日与人性的重量",
+    detailDesc: `《荒野大镖客：救赎2》2018年发售，被众多玩家和媒体誉为「史上最好的开放世界游戏」。\n\n1899年美国西部开发的尾声，玩家扮演荒野骑士Arthur Morgan，跟随范德林德匪帮经历最后的岁月。关于忠诚、背叛、救赎与时代终结的史诗。\n\n细节真实度令人窒息：马匹会因长时间骑行而疲惫，武器需要定期清洁，NPC会记住你上次见面时的行为。\n\nArthur Morgan是游戏史上塑造最完整的主角之一，很多玩家在结局时落泪，因为那种「失去了一个真实的朋友」的感觉。`,
+    matchKeywords: ["故事", "叙事", "人文", "情感", "历史", "写作", "文学", "哲学", "慢", "体验", "旅行"],
+    template: (p) => `《荒野大镖客2》是那种能让你忘记时间的游戏。Arthur Morgan的故事不是英雄主义的故事，而是关于「如何在不完美的处境里做一个好人」的故事。${p.slogan ? `你的slogan「${p.slogan}」和这个游戏的主题有某种奇妙的契合。` : ""}`,
+    links: { steam: "https://store.steampowered.com/app/1174180/", gamersky: "https://www.gamersky.com/search/荒野大镖客2/", threeDm: "https://www.3dmgame.com/search/荒野大镖客2/" },
+    tags: ["叙事神作", "西部", "开放世界", "情感", "必玩"],
+  },
+  {
+    id: "witcher3", name: "巫师 3：狂猎", nameEn: "The Witcher 3: Wild Hunt",
+    genre: ["开放世界RPG", "奇幻", "道德抉择"], platform: "PC / PS5 / Xbox / Switch", coverEmoji: "🐺",
+    shortDesc: "道德灰色地带的最佳诠释，每个决定都没有绝对的对与错",
+    detailDesc: `《巫师3》2015年发售至今仍在「史上最佳游戏」榜单稳居前列，2022年次世代版本视觉进一步提升。\n\n玩家扮演猎魔人杰洛特，在一个满目疮痍的北方大陆寻找养女希里。精灵、矮人受到歧视，人类内部充斥政治阴谋，没有任何一方是绝对的「正义」。\n\n道德系统的复杂性是其最大特色：几乎每一个重要任务都没有「好选择」和「坏选择」，只有不同的权衡取舍。\n\n两个DLC的质量不亚于完整游戏，《血与酒》构建的托森特公国是游戏史上最美的地图之一。`,
+    matchKeywords: ["哲学", "伦理", "道德", "文学", "思考", "复杂", "灰色", "社会", "人性", "研究", "分析"],
+    template: (p) => `《巫师3》最适合${p.personality?.includes("思考") || p.personality?.includes("哲学") ? "有哲学思考倾向" : "喜欢深度叙事"}的人。它不问「你是英雄还是坏人」，它问「在没有完美答案的世界里，你如何做决定？」——这个问题，${p.occupation ? `在${p.occupation}的工作里` : "在现实里"}你大概也经常面对。`,
+    links: { steam: "https://store.steampowered.com/app/292030/", gamersky: "https://www.gamersky.com/search/巫师3/", threeDm: "https://www.3dmgame.com/search/巫师3/" },
+    tags: ["RPG经典", "道德选择", "开放世界", "叙事", "奇幻"],
+  },
+  {
+    id: "death-stranding", name: "死亡搁浅", nameEn: "Death Stranding",
+    genre: ["步行模拟", "科幻", "叙事"], platform: "PC / PS5 / PS4", coverEmoji: "📦",
+    shortDesc: "小岛秀夫的孤独史诗，关于「连接」的最独特游戏体验",
+    detailDesc: `《死亡搁浅》是小岛秀夫离开科纳米后的第一部作品，2019年发售，极其独特的游戏设计深度分裂了玩家群体。\n\n玩家扮演快递员Sam Porter Bridges，徒步穿越已崩溃的美国荒野，将物资送到孤立的各个城市。\n\n核心机制「隐性联机」：你建造的桥梁、搭设的梯子会出现在其他玩家的游戏世界；其他玩家遗留的物资，可能在你最艰难的时刻出现。整个游戏在构建「孤独个体如何构成社会连接」的隐喻。\n\n随着故事推进，所有碎片拼成一个关于「生命、死亡、失去与联结」的完整哲学论述。`,
+    matchKeywords: ["孤独", "连接", "艺术", "设计", "哲学", "独立", "慢", "创意", "文艺", "内向"],
+    template: (p) => `如果你对「孤独」和「连接」这两个命题感兴趣，《死亡搁浅》是少数真正在用游戏机制本身来探讨这个主题的作品。${p.personality ? `以${p.personality}的你来说，` : ""}这个游戏会让你走路的时候想很多，睡前还在回味。`,
+    links: { steam: "https://store.steampowered.com/app/1190460/", gamersky: "https://www.gamersky.com/search/死亡搁浅/", threeDm: "https://www.3dmgame.com/search/死亡搁浅/" },
+    tags: ["小岛秀夫", "哲学游戏", "步行模拟", "叙事", "独特体验"],
+  },
+];
+
+function selectBigGames(profile: AvatarProfile, count = 4): GameRecommendation[] {
+  const text = [profile.personality, profile.occupation, profile.goal, profile.story, profile.slogan].filter(Boolean).join(" ");
+  const scored = BIG_GAME_POOL.map((g) => ({
+    ...g,
+    score: g.matchKeywords.filter((kw) => text.includes(kw)).length,
+  })).sort((a, b) => b.score - a.score);
+
+  const selected: typeof scored = [];
+  const usedGenres = new Set<string>();
+  for (const g of scored) {
+    if (selected.length >= count) break;
+    if (!usedGenres.has(g.genre[0]) || selected.length < 2) {
+      selected.push(g); usedGenres.add(g.genre[0]);
+    }
+  }
+  for (const g of scored) {
+    if (selected.length >= count) break;
+    if (!selected.find((s) => s.id === g.id)) selected.push(g);
+  }
+
+  return selected.map((g) => ({
+    id: g.id, name: g.name, nameEn: g.nameEn, genre: g.genre,
+    platform: g.platform, coverEmoji: g.coverEmoji, shortDesc: g.shortDesc,
+    detailDesc: g.detailDesc,
+    whyForYou: g.template(profile),
+    matchTags: g.matchKeywords.filter((kw) => text.includes(kw)).slice(0, 3),
+    links: g.links, tags: g.tags,
+  }));
+}
+
 export async function GET() {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -211,23 +334,25 @@ export async function GET() {
   const avatarName = user?.avatarProfile?.avatarName || "我的分身";
   const profile = user?.avatarProfile;
 
+  const avatarProfile = {
+    avatarName: profile?.avatarName,
+    personality: profile?.personality,
+    occupation: profile?.occupation,
+    goal: profile?.goal,
+    story: profile?.story,
+    slogan: profile?.slogan,
+  };
+
   // 为 2048 注入个性化深度体验报告
   const games: GameItem[] = BASE_GAMES.map((g) => {
-    if (g.id === "2048" && profile) {
-      return {
-        ...g,
-        report: generate2048Report({
-          avatarName: profile.avatarName,
-          personality: profile.personality,
-          occupation: profile.occupation,
-          goal: profile.goal,
-          story: profile.story,
-          slogan: profile.slogan,
-        }),
-      };
+    if (g.id === "2048") {
+      return { ...g, report: generate2048Report(avatarProfile) };
     }
     return g;
   });
 
-  return NextResponse.json({ games, avatarName });
+  // 大型3D游戏推荐（并入同一接口，避免额外 API 调用失败）
+  const recommendations = selectBigGames(avatarProfile, 4);
+
+  return NextResponse.json({ games, avatarName, recommendations });
 }
