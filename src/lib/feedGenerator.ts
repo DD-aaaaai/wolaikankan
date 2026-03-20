@@ -43,9 +43,15 @@ function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// 根据标题和分类生成搜索 URL，永不过期
+// 从标题中提取短关键词（取冒号前第一段，最多12字），大幅提升搜索命中率
+function toSearchQuery(title: string): string {
+  const first = title.split("：")[0].split("？")[0].split("，")[0];
+  return first.slice(0, 12);
+}
+
+// 根据分类生成搜索 URL，永不过期
 function makeSearchUrl(title: string, category: "work" | "growth" | "entertainment" | "health" | "relationship" | "other"): { url: string; source: string } {
-  const q = encodeURIComponent(title);
+  const q = encodeURIComponent(toSearchQuery(title));
   switch (category) {
     case "work":
       return { url: `https://36kr.com/search/articles/${q}`, source: "36氪" };
