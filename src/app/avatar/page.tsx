@@ -353,7 +353,6 @@ function GameCard({ game, onClick }: { game: GameItem; onClick: () => void }) {
 
 function GameDetail({ game, avatarName, onBack }: { game: GameItem; avatarName: string; onBack: () => void }) {
   const grad = GAME_GENRE_COLORS[game.genre] || "from-sky-400 to-blue-500";
-  const [playing, setPlaying] = useState(false);
   return (
     <div className="space-y-4">
       <button onClick={onBack} className="flex items-center gap-1.5 text-sky-500 hover:text-sky-700 text-sm font-medium transition-colors">
@@ -399,47 +398,15 @@ function GameDetail({ game, avatarName, onBack }: { game: GameItem; avatarName: 
             ))}
           </div>
 
-          {/* Play section */}
-          <div className="space-y-3">
-            {!playing ? (
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setPlaying(true)}
-                  className={`flex-1 py-3.5 rounded-2xl font-bold text-sm text-white bg-gradient-to-r ${grad} hover:opacity-90 transition-opacity flex items-center justify-center gap-2`}
-                >
-                  🎮 在页面内体验
-                </button>
-                <a
-                  href={game.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-5 py-3.5 rounded-2xl font-medium text-sm text-sky-600 bg-sky-50 hover:bg-sky-100 border border-sky-200 transition-colors flex items-center gap-1"
-                >
-                  新窗口打开 ↗
-                </a>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-sky-600 text-sm font-medium">🎮 游戏加载中...</p>
-                  <button onClick={() => setPlaying(false)} className="text-sky-400 text-xs hover:text-sky-600 transition-colors">关闭</button>
-                </div>
-                <div className="rounded-2xl overflow-hidden border border-sky-200 bg-sky-50" style={{ height: "480px" }}>
-                  <iframe
-                    src={game.url}
-                    className="w-full h-full"
-                    title={game.name}
-                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                  />
-                </div>
-                <p className="text-sky-400 text-xs text-center">如果游戏无法加载，请点击「新窗口打开」→</p>
-                <a href={game.url} target="_blank" rel="noopener noreferrer"
-                  className="block text-center text-sky-500 text-xs hover:text-sky-700 transition-colors font-medium py-1">
-                  在 4399 中打开 ↗
-                </a>
-              </div>
-            )}
-          </div>
+          {/* Play button — 直接跳转，不用 iframe（绝大多数网站禁止被嵌入）*/}
+          <a
+            href={game.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`flex items-center justify-center gap-2 w-full py-4 rounded-2xl font-bold text-base text-white bg-gradient-to-r ${grad} hover:opacity-90 transition-opacity`}
+          >
+            🎮 去玩这个游戏 ↗
+          </a>
         </div>
       </div>
     </div>
